@@ -4,7 +4,7 @@ env:
   CIBW_BUILD: 'cp37-* cp38-* cp39-* cp310-*'
   CIBW_SKIP: '*-musllinux_*'
 jobs:
-  set_commit_range:
+  setup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -38,18 +38,19 @@ jobs:
           while read op path; do
               case "$op" in
                   A|M)
-                      echo "${path}" | cut -d '/' -f1 >> duplicated_recipe_folders.txt
+                      echo "${path}" | cut -d '/' -f1,2 >> duplicated_recipe_folders.txt
                       ;;
               esac
           done < <(git diff --color=never --name-status '${{ steps.commit_range_step.outputs.commit_range }}' -- recipes/)
           sort -u duplicated_recipe_folders.txt > recipe_list.txt
+          cat recipe_list.txt
       - uses: actions/upload-artifact@v3
         with:
           name: recipe_list
           path: recipe_list.txt
 
   build:
-    needs: set_commit_range
+    needs: setup
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
