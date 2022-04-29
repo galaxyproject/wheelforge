@@ -3,6 +3,11 @@ on: [push, pull_request]
 env:
   CIBW_BUILD: 'cp37-* cp38-* cp39-* cp310-*'
   CIBW_SKIP: '*-musllinux_*'
+concurrency:
+  # Group runs by PR, but keep runs on the default branch separate
+  # because we do not want to cancel wheel uploads
+  group: pr-${{ github.ref == 'refs/heads/main' && github.run_number || github.ref }}
+  cancel-in-progress: true
 jobs:
   setup:
     runs-on: ubuntu-latest
