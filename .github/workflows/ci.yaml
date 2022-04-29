@@ -1,0 +1,103 @@
+name: Build and upload wheels
+on: [push, pull_request]
+env:
+  CIBW_BUILD: 'cp37-* cp38-* cp39-* cp310-*'
+  CIBW_SKIP: '*-musllinux_*'
+jobs:
+  set_commit_range:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      # The range of commits to check for changes is:
+      # - `origin/main...` for all events happening on a feature branch
+      # - for events on the main branch we compare against the sha before the event
+      #   (note that this does not work for feature branch events since we want all
+      #   commits on the feature branch and not just the commits of the last event)
+      # - for pull requests we compare against the 1st ancestor, given the current
+      #   HEAD is the merge between the PR branch and the base branch
+      - name: Set commit range
+        id: commit_range_step
+        run: |
+          if [ "${{ github.event_name }}" = 'push' -a "${{github.ref}}" != 'refs/heads/main' ]; then
+              # push to a feature branch
+              git fetch origin main
+              commit_range='origin/main...'
+          elif [ "${{ github.event_name }}" = 'push' -a "${{ github.ref }}" = 'refs/heads/main' ]; then
+              # push to the main branch, e.g. merge
+              commit_range="${{ github.event.before }}.."
+          else
+              # pull request
+              commit_range='HEAD~..'
+          fi
+          echo "::set-output name=commit_range::$commit_range"
+      - name: Detect changes to recipes/
+        run: |
+          touch duplicated_recipe_folders.txt
+          while read op path; do
+              case "$op" in
+                  A|M)
+                      echo "${path}" | cut -d '/' -f1 >> duplicated_recipe_folders.txt
+                      ;;
+              esac
+          done < <(git diff --color=never --name-status '${{ steps.commit_range_step.outputs.commit_range }}' -- recipes/)
+          sort -u duplicated_recipe_folders.txt > recipe_list.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: recipe_list
+          path: recipe_list.txt
+
+  build:
+    needs: set_commit_range
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+      - uses: actions/download-artifact@v3
+        with:
+          name: recipe_list
+          path: ../workflow_artifacts/
+      - name: Install required Python packages
+        run: python -m pip install cibuildwheel PyYAML requests
+      - name: Build wheels
+        run: |
+          while read -r folder; do
+              python3 cibuildwheel_wrapper.py "$folder";
+          done < ../workflow_artifacts/recipe_list.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wheelhouse
+          path: wheelhouse/
+
+  deploy:
+    name: Deploy Wheels
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'galaxyproject'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: recipe_list
+          path: ../workflow_artifacts/
+      - name: Check recipe_list.txt
+        run: if [ -s ../workflow_artifacts/recipe_list.txt ]; then exit 0; fi
+      - uses: actions/download-artifact@v3
+        with:
+          name: wheelhouse
+          path: wheelhouse/
+      - uses: actions/setup-python@v3
+        with:
+          python-version: 3.10
+      - name: Setup deploy environment
+        run: python3 -m pip install s3pypi
+      - name: Deploy wheels
+        run: s3pypi ./wheelhouse/* --bucket "$S3_BUCKET" --region "$S3_REGION" --put-root-index --force
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
