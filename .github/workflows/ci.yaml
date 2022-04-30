@@ -70,11 +70,11 @@ jobs:
           name: recipe_list
           path: ../workflow_artifacts/
       - name: Install required Python packages
-        run: python -m pip install cibuildwheel PyYAML requests
+        run: python -m pip install build cibuildwheel PyYAML requests
       - name: Build wheels
         run: |
           while read -r folder; do
-              python3 cibuildwheel_wrapper.py "$folder";
+              python3 wheel_builder.py "$folder";
           done < ../workflow_artifacts/recipe_list.txt
       - uses: actions/upload-artifact@v3
         with:
