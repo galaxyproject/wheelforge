@@ -11,6 +11,8 @@ concurrency:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    outputs:
+      recipes_found: ${{ steps.recipes_changes.recipes_found }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -38,6 +40,7 @@ jobs:
           fi
           echo "::set-output name=commit_range::$commit_range"
       - name: Detect changes to recipes/
+        id: recipes_changes
         run: |
           touch duplicated_recipe_folders.txt
           while read op path; do
@@ -49,6 +52,12 @@ jobs:
           done < <(git diff --color=never --name-status '${{ steps.commit_range_step.outputs.commit_range }}' -- recipes/)
           sort -u duplicated_recipe_folders.txt > recipe_list.txt
           cat recipe_list.txt
+          if [ -s recipe_list.txt ]; then
+              recipes_found=true
+          else
+              recipes_found=false
+          fi
+          echo "::set-output name=recipes_found::$recipes_found"
       - uses: actions/upload-artifact@v3
         with:
           name: recipe_list
@@ -56,6 +65,7 @@ jobs:
 
   build:
     needs: setup
+    if: ${{ needs.setup.outputs.recipes_found == 'true' }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -84,15 +94,9 @@ jobs:
   deploy:
     name: Deploy Wheels
     needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'galaxyproject'
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'galaxyproject' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
-        with:
-          name: recipe_list
-          path: ../workflow_artifacts/
-      - name: Check recipe_list.txt
-        run: if [ -s ../workflow_artifacts/recipe_list.txt ]; then exit 0; fi
       - uses: actions/download-artifact@v3
         with:
           name: wheelhouse
