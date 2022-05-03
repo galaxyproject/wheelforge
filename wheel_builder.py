@@ -6,8 +6,8 @@ import tarfile
 import tempfile
 from pathlib import Path
 
-import yaml
 import requests
+import yaml
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
