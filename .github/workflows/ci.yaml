@@ -12,7 +12,7 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     outputs:
-      recipes_found: ${{ steps.recipes_changes.recipes_found }}
+      recipes_found: ${{ steps.recipes_changes.outputs.recipes_found }}
     steps:
       - uses: actions/checkout@v3
         with:
