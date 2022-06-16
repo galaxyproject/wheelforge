@@ -55,6 +55,7 @@ if __name__ == "__main__":
         print("Done", flush=True)
 
         # Generate the commands to run
+        check_commands = []
         commands = []
         env_file = os.path.join(folder, "env.sh")
         if os.path.exists(env_file):
@@ -71,8 +72,28 @@ if __name__ == "__main__":
 
             commands.append(f"python3 -m build --wheel --outdir wheelhouse '{extracted_sdist_dir}'")
         else:
+            check_commands = commands.copy()
+            check_commands.append("cibuildwheel --print-build-identifiers")
             commands.append(f"cibuildwheel --output-dir wheelhouse '{sdist_filepath}'")
         joined_command = " && ".join(commands)
+        joined_check_command = " && ".join(check_commands)
+
+        # Run builder check commands
+        if check_commands:
+            try:
+                check_cp = subprocess.run(
+                    joined_check_command,
+                    shell=True,
+                    check=True,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                )
+            except subprocess.CalledProcessError as exc:
+                raise Exception(f"Build platform check command failed: {exc.stdout}")
+            if not check_cp.stdout:
+                print("No platforms to build for on this builder, exiting...")
+                sys.exit(0)
 
         # Run the commands
         print(f"Executing: {joined_command}")
