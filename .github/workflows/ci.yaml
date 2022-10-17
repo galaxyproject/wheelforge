@@ -38,7 +38,7 @@ jobs:
               # pull request
               commit_range='HEAD~..'
           fi
-          echo "::set-output name=commit_range::$commit_range"
+          echo "commit_range=$commit_range" >> $GITHUB_OUTPUT
       - name: Detect changes to recipes/
         id: recipes_changes
         run: |
@@ -57,7 +57,7 @@ jobs:
           else
               recipes_found=false
           fi
-          echo "::set-output name=recipes_found::$recipes_found"
+          echo "recipes_found=$recipes_found" >> $GITHUB_OUTPUT
       - uses: actions/upload-artifact@v3
         with:
           name: recipe_list
@@ -72,7 +72,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
       - uses: actions/download-artifact@v3
@@ -101,7 +101,7 @@ jobs:
         with:
           name: wheelhouse
           path: wheelhouse/
-      - uses: actions/setup-python@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.10'
       - name: Setup deploy environment
