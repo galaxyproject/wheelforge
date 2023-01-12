@@ -1,7 +1,7 @@
 name: Build and upload wheels
 on: [push, pull_request]
 env:
-  CIBW_BUILD: 'cp37-* cp38-* cp39-* cp310-*'
+  CIBW_BUILD: 'cp37-* cp38-* cp39-* cp310-* cp311-*'
   CIBW_SKIP: '*-musllinux_*'
 concurrency:
   # Group runs by PR, but keep runs on the default branch separate
