@@ -4,10 +4,12 @@ on:
     paths:
       - '**.py'
       - '.github/workflows/lint.yaml'
+      - tox.ini
   pull_request:
     paths:
       - '**.py'
       - '.github/workflows/lint.yaml'
+      - tox.ini
 concurrency:
   group: lint-${{ github.ref }}
   cancel-in-progress: true
