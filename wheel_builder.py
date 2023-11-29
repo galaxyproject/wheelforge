@@ -30,6 +30,7 @@ if __name__ == "__main__":
     package_version = meta["version"]
     is_package_pure = meta.get("purepy", False)
     run_in_sdist = meta.get("run_in_sdist", False)
+    run_in_sdist_before = meta.get("run_in_sdist_before", [])
 
     # Find the sdist url using the PyPI warehouse API https://warehouse.pypa.io/api-reference/json.html
     pypi_url = f"https://pypi.org/pypi/{package_name}/{package_version}/json"
@@ -58,7 +59,7 @@ if __name__ == "__main__":
         # Generate the commands to run
         check_commands = []
         commands = []
-        env_file = os.path.join(folder, "env.sh")
+        env_file = os.path.join(os.getcwd(), folder, "env.sh")
         if os.path.exists(env_file):
             commands.append(f". '{env_file}'")
 
@@ -84,8 +85,7 @@ if __name__ == "__main__":
             check_commands.append("cibuildwheel --print-build-identifiers")
             if run_in_sdist:
                 commands.append(f"cd '{extracted_sdist_dir}'")
-                # FIXME: testing
-                commands.append("sed -i 's/^before-build.*//' pyproject.toml")
+                commands.extend(run_in_sdist_before)
             commands.append(f"cibuildwheel --output-dir '{wheelhouse}' '{package_path}'")
         joined_command = " && ".join(commands)
         joined_check_command = " && ".join(check_commands)
