@@ -84,6 +84,8 @@ if __name__ == "__main__":
             check_commands.append("cibuildwheel --print-build-identifiers")
             if run_in_sdist:
                 commands.append(f"cd '{extracted_sdist_dir}'")
+                # FIXME: testing
+                commands.append("sed -i 's/^before-build.*//' pyproject.toml")
             commands.append(f"cibuildwheel --output-dir '{wheelhouse}' '{package_path}'")
         joined_command = " && ".join(commands)
         joined_check_command = " && ".join(check_commands)
