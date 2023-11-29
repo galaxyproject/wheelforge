@@ -59,7 +59,7 @@ if __name__ == "__main__":
         # Generate the commands to run
         check_commands = []
         commands = []
-        env_file = os.path.join(os.getcwd(), folder, "env.sh")
+        env_file = os.path.join(folder, "env.sh")
         if os.path.exists(env_file):
             commands.append(f". '{env_file}'")
 
