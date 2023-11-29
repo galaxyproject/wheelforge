@@ -29,6 +29,8 @@ if __name__ == "__main__":
     package_name = meta["name"]
     package_version = meta["version"]
     is_package_pure = meta.get("purepy", False)
+    run_in_sdist = meta.get("run_in_sdist", False)
+    run_in_sdist_before = meta.get("run_in_sdist_before", [])
 
     # Find the sdist url using the PyPI warehouse API https://warehouse.pypa.io/api-reference/json.html
     pypi_url = f"https://pypi.org/pypi/{package_name}/{package_version}/json"
@@ -60,7 +62,11 @@ if __name__ == "__main__":
         env_file = os.path.join(folder, "env.sh")
         if os.path.exists(env_file):
             commands.append(f". '{env_file}'")
-        if is_package_pure:
+
+        extracted_sdist_dir = None
+        package_path = sdist_filepath
+        wheelhouse = os.path.join(os.getcwd(), "wheelhouse")
+        if is_package_pure or run_in_sdist:
             tar_temp_dir = Path(tempfile.mkdtemp(dir=temp_dir))
             with tarfile.open(sdist_filepath) as tar:
                 tar.extractall(path=tar_temp_dir)
@@ -70,11 +76,17 @@ if __name__ == "__main__":
             except ValueError:
                 raise Exception("Invalid sdist: didn't contain a single directory")
 
-            commands.append(f"python3 -m build --wheel --outdir wheelhouse '{extracted_sdist_dir}'")
+            package_path = "."
+
+        if is_package_pure:
+            commands.append(f"python3 -m build --wheel --outdir '{wheelhouse}' '{extracted_sdist_dir}'")
         else:
             check_commands = commands.copy()
             check_commands.append("cibuildwheel --print-build-identifiers")
-            commands.append(f"cibuildwheel --output-dir wheelhouse '{sdist_filepath}'")
+            if run_in_sdist:
+                commands.append(f"cd '{extracted_sdist_dir}'")
+                commands.extend(run_in_sdist_before)
+            commands.append(f"cibuildwheel --output-dir '{wheelhouse}' '{package_path}'")
         joined_command = " && ".join(commands)
         joined_check_command = " && ".join(check_commands)
 
