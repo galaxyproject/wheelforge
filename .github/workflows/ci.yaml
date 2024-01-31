@@ -107,7 +107,7 @@ jobs:
       - name: Setup deploy environment
         run: python3 -m pip install s3pypi
       - name: Deploy wheels
-        run: s3pypi upload ./wheelhouse/* --bucket "$S3_BUCKET" --region "$S3_REGION" --put-root-index --unsafe-s3-website --acl 'public-read' --force
+        run: s3pypi upload ./wheelhouse/* --bucket "$S3_BUCKET" --region "$S3_REGION" --put-root-index --index.html --s3-put-args 'ACL=public-read' --force
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
