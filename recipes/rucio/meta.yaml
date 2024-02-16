@@ -1,0 +1,4 @@
+---
+name: rucio
+version: "33.5.0"
+purepy: true
