@@ -3,6 +3,3 @@ name: pysam
 version: 0.22.1
 # as of 0.22.0 {project} in pyproject.toml [tool.cibuildwheel] expects to be the package dir
 run_in_sdist: true
-run_in_sdist_before:
-- curl -Lo htslib/hts_probe_cc.sh 'https://raw.githubusercontent.com/pysam-developers/pysam/v0.22.0/htslib/hts_probe_cc.sh'
-- chmod +x htslib/hts_probe_cc.sh
