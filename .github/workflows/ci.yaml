@@ -81,6 +81,9 @@ jobs:
           path: ../workflow_artifacts/
       - name: Install required Python packages
         run: python -m pip install build cibuildwheel PyYAML requests
+      - name: Set up QEMU to build non-native architectures
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
       - name: Build wheels
         run: |
           while read -r folder; do
