@@ -103,7 +103,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           merge-multiple: true
-          name: wheelhouse-*
+          pattern: wheelhouse-*
           path: wheelhouse/
       - uses: actions/setup-python@v5
         with:
