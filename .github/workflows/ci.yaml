@@ -1,7 +1,7 @@
 name: Build and upload wheels
 on: [push, pull_request]
 env:
-  CIBW_BUILD: 'cp38-* cp39-* cp310-* cp311-* cp312-*'
+  CIBW_BUILD: 'cp38-* cp39-* cp310-* cp311-* cp312-* cp313-*'
   CIBW_SKIP: '*-musllinux_*'
 concurrency:
   # Group runs by PR, but keep runs on the default branch separate
@@ -74,7 +74,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - uses: actions/download-artifact@v4
         with:
           name: recipe_list
@@ -107,7 +107,7 @@ jobs:
           path: wheelhouse/
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.13'
       - name: Setup deploy environment
         run: python3 -m pip install s3pypi
       - name: Deploy wheels

@@ -69,6 +69,7 @@ if __name__ == "__main__":
         if is_package_pure or run_in_sdist:
             tar_temp_dir = Path(tempfile.mkdtemp(dir=temp_dir))
             with tarfile.open(sdist_filepath) as tar:
+                tar.extraction_filter = getattr(tarfile, "data_filter", (lambda member, path: member))
                 tar.extractall(path=tar_temp_dir)
 
             try:
