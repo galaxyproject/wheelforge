@@ -1,0 +1,9 @@
+---
+name: firecloud
+version: 0.16.38
+purepy: true
+run_in_sdist_before:
+  - |-
+    echo '[build-system]
+    requires = ["setuptools<80.3.0"]
+    build-backend = "setuptools.build_meta:__legacy__"' > pyproject.toml

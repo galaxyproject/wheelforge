@@ -20,3 +20,13 @@ specified with `purepy: true` in the recipe).
 
 At the end of the CI job, the wheels are uploaded to https://wheels.galaxyproject.org ,
 a Python Package Repository used by the [Galaxy Project](https://galaxyproject.org).
+
+Other options:
+- If an `env.sh` file is present in the same directory of the `meta.yaml` file,
+  it is sourced before building the wheel. This can be used e.g. to set the
+  `CIBW_` environment variables to configure cibuildwheel.
+- For a non-pure Python package: if `run_in_sdist` is set to `True` in
+  `meta.yaml` , then the sdist archive is extracted into a folder, and cibuildwheel
+  run inside it (instead of being passed the path of the sdist archive).
+- `run_in_sdist_before` can be defined in `meta.yaml` as a list of commands to
+  run in the folder where the sdist was extracted before the wheels are built.
