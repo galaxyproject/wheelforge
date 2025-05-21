@@ -64,7 +64,6 @@ if __name__ == "__main__":
             commands.append(f". '{env_file}'")
 
         extracted_sdist_dir = None
-        package_path = sdist_filepath
         wheelhouse = os.path.join(os.getcwd(), "wheelhouse")
         if is_package_pure or run_in_sdist:
             tar_temp_dir = Path(tempfile.mkdtemp(dir=temp_dir))
@@ -77,7 +76,10 @@ if __name__ == "__main__":
             except ValueError:
                 raise Exception("Invalid sdist: didn't contain a single directory")
 
-            package_path = "."
+            if run_in_sdist_before:
+                commands.append(f"cd '{extracted_sdist_dir}'")
+                commands.extend(run_in_sdist_before)
+                commands.append("cd -")
 
         if is_package_pure:
             commands.append(f"python3 -m build --wheel --outdir '{wheelhouse}' '{extracted_sdist_dir}'")
@@ -86,7 +88,7 @@ if __name__ == "__main__":
             check_commands.append("cibuildwheel --print-build-identifiers")
             if run_in_sdist:
                 commands.append(f"cd '{extracted_sdist_dir}'")
-                commands.extend(run_in_sdist_before)
+            package_path = "." if run_in_sdist else sdist_filepath
             commands.append(f"cibuildwheel --output-dir '{wheelhouse}' '{package_path}'")
         joined_command = " && ".join(commands)
         joined_check_command = " && ".join(check_commands)
