@@ -19,12 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9', '3.13']
+        python-version: ['3.9', '3.14']
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
       - name: Install tox
         run: pip install tox
       - name: Run tox
