@@ -79,7 +79,7 @@ jobs:
         with:
           python-version: '3.14'
           cache: pip
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           name: recipe_list
           path: ../workflow_artifacts/
@@ -104,7 +104,7 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'galaxyproject' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v6
         with:
           merge-multiple: true
           pattern: wheelhouse-*
