@@ -101,7 +101,6 @@ jobs:
   deploy:
     name: Deploy Wheels
     needs: build
-    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'galaxyproject' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v6
@@ -112,10 +111,11 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.14'
-          cache: pip
+          # No cache since we are not checking out the repo
       - name: Setup deploy environment
         run: python3 -m pip install s3pypi
       - name: Deploy wheels
+        if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'push' && github.repository_owner == 'galaxyproject' }}
         run: s3pypi upload ./wheelhouse/* --bucket "$S3_BUCKET" --region "$S3_REGION" --put-root-index --index.html --s3-put-args 'ACL=public-read' --force
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
