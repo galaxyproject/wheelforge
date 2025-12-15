@@ -79,7 +79,7 @@ jobs:
         with:
           python-version: '3.14'
           cache: pip
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: recipe_list
           path: ../workflow_artifacts/
@@ -103,7 +103,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           merge-multiple: true
           pattern: wheelhouse-*
