@@ -8,6 +8,7 @@ concurrency:
   # because we do not want to cancel wheel uploads
   group: pr-${{ github.ref == 'refs/heads/main' && github.run_number || github.ref }}
   cancel-in-progress: true
+permissions: {}
 jobs:
   setup:
     runs-on: ubuntu-latest
@@ -28,11 +29,11 @@ jobs:
       - name: Set commit range
         id: commit_range_step
         run: |
-          if [ "${{ github.event_name }}" = 'push' -a "${{github.ref}}" != 'refs/heads/main' ]; then
+          if [ "${{ github.event_name }}" = 'push' -a "${GITHUB_REF}" != 'refs/heads/main' ]; then
               # push to a feature branch
               git fetch origin main
               commit_range='origin/main...'
-          elif [ "${{ github.event_name }}" = 'push' -a "${{ github.ref }}" = 'refs/heads/main' ]; then
+          elif [ "${{ github.event_name }}" = 'push' -a "${GITHUB_REF}" = 'refs/heads/main' ]; then
               # push to the main branch, e.g. merge
               commit_range="${{ github.event.before }}.."
           else
@@ -42,7 +43,7 @@ jobs:
           echo "commit_range=$commit_range" >> $GITHUB_OUTPUT
       - name: Detect changes to recipes/
         id: recipes_changes
-        run: |
+        run: |  # zizmor: ignore[template-injection]
           touch duplicated_recipe_folders.txt
           while read op path; do
               case "$op" in
