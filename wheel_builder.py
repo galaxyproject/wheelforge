@@ -31,6 +31,7 @@ if __name__ == "__main__":
     is_package_pure = meta.get("purepy", False)
     run_in_sdist = meta.get("run_in_sdist", False)
     run_in_sdist_before = meta.get("run_in_sdist_before", [])
+    cibuildwheel_version = meta.get("cibuildwheel_version", "")
 
     # Find the sdist url using the PyPI warehouse API https://warehouse.pypa.io/api-reference/json.html
     pypi_url = f"https://pypi.org/pypi/{package_name}/{package_version}/json"
@@ -84,12 +85,19 @@ if __name__ == "__main__":
         if is_package_pure:
             commands.append(f"python3 -m build --wheel --outdir '{wheelhouse}' '{extracted_sdist_dir}'")
         else:
+            # Run cibuildwheel in an isolated environment, so that a recipe can request a
+            # specific version, e.g. to build wheels for a Python version not supported by
+            # the latest cibuildwheel
+            cibuildwheel = f"uv tool run --quiet --from 'cibuildwheel{cibuildwheel_version}' cibuildwheel"
             check_commands = commands.copy()
-            check_commands.append("cibuildwheel --print-build-identifiers")
+            # Pass the package to the check command too, otherwise cibuildwheel would
+            # read the requires-python of this repository's pyproject.toml instead
+            check_package_path = extracted_sdist_dir if run_in_sdist else sdist_filepath
+            check_commands.append(f"{cibuildwheel} --print-build-identifiers '{check_package_path}'")
             if run_in_sdist:
                 commands.append(f"cd '{extracted_sdist_dir}'")
             package_path = "." if run_in_sdist else sdist_filepath
-            commands.append(f"cibuildwheel --output-dir '{wheelhouse}' '{package_path}'")
+            commands.append(f"{cibuildwheel} --output-dir '{wheelhouse}' '{package_path}'")
         joined_command = " && ".join(commands)
         joined_check_command = " && ".join(check_commands)
 

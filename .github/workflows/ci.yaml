@@ -85,7 +85,7 @@ jobs:
           name: recipe_list
           path: ../workflow_artifacts/
       - name: Install required Python packages
-        run: python3 -m pip install build cibuildwheel PyYAML requests
+        run: python3 -m pip install build uv PyYAML requests
       - name: Set up QEMU to build non-native architectures
         if: runner.os == 'Linux' && runner.arch == 'X64'
         uses: docker/setup-qemu-action@v4.3.0

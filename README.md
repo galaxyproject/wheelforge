@@ -30,3 +30,8 @@ Other options:
   run inside it (instead of being passed the path of the sdist archive).
 - `run_in_sdist_before` can be defined in `meta.yaml` as a list of commands to
   run in the folder where the sdist was extracted before the wheels are built.
+- For a non-pure Python package: `cibuildwheel_version` can be defined in
+  `meta.yaml` as a [version specifier](https://packaging.python.org/en/latest/specifications/version-specifiers/)
+  (e.g. `"<4"`) to run that version of cibuildwheel (via `uv tool run`)
+  instead of the latest one. This is useful e.g. to build wheels for a Python
+  version no longer supported by the latest cibuildwheel release.
